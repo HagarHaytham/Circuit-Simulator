@@ -1,6 +1,7 @@
 from component import component
 from node import node
 
+import numpy as np
 
 with open("input/1.txt") as file: 
    data = file.read()
@@ -20,7 +21,7 @@ for i in range (2,len(data)-1):
     nodesNames.add(data[i][1])
     nodesNames.add(data[i][2])
     circuitComponents.append(c)
-n = len(nodesNames) - 1
+n = len(nodesNames) - 1 # without ground
 nodes = []
 for name in nodesNames:
     nodes.append(node(name))
@@ -33,3 +34,13 @@ for i in range (len(nodes)):
             nodes[i].addComponent(circuitComponents[j])
 
 l= nodes[0].getResistors()
+G = np.zeros((n,n))
+# first diagonal elements of G
+for i in range (len(nodes)):
+    if nodes[i].name =='V0':
+        continue
+    pos = int(nodes[i].name[1])-1
+    r = nodes[i].getResistors()
+    for j in range(len(r)):
+        G[pos][pos]+= 1/r[j].value
+print(G)
