@@ -61,4 +61,15 @@ for i in range (len(nodes)):
         elif int(r[j].node2[1]) > nodes[i].number:
             G[nodes[i].number-1][int(r[j].node2[1])-1] += -1/r[j].value
             G[int(r[j].node2[1])-1][nodes[i].number-1] += -1/r[j].value
-print(G)
+# compute B
+B = np.zeros((n,m))
+vsrc = 0
+for i in range(len(circuitComponents)):
+    if circuitComponents[i].ctype == 'Vsrc':
+        nodeNum1 = int(circuitComponents[i].node1[1])
+        nodeNum2 = int(circuitComponents[i].node2[1])
+        B[nodeNum1][vsrc] = 1
+        B[nodeNum2][vsrc] = -1
+# compute C and D
+C = B.transpose()
+D = np.zeros((m,m))
