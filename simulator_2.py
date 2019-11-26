@@ -2,7 +2,7 @@ from component import component
 from node import node
 import numpy as np
 
-infile ="testcases/2.txt"
+infile ="testcases/6.txt"
 with open(infile)as file:
     data = file.read()
 data = data.split('\n')
@@ -133,36 +133,37 @@ for i in range(len(circuitComponents)):
 Z = np.block([[I],[E]])
 
 
-def calculate_It_Z(V_init,I_init):
+def calculate_It_Z(X):
     tmp_1 = np.zeros((n,1))
     tmp_2 = np.zeros((m,1))
     vsrc = 0
+    count = n
     for i in range(len(circuitComponents)):
         if circuitComponents[i].ctype == 'Vsrc':
             tmp_2[vsrc] = 0
             vsrc += 1
+            count += 1
     for i in range(len(circuitComponents)):
         if circuitComponents[i].ctype == 'I':
-            tmp_2[vsrc] = -1*circuitComponents[i].value/h*I_init
+            tmp_2[vsrc] = (-1*circuitComponents[i].value/h)*X[count]
             vsrc += 1
+            count += 1
     for i in range(len(circuitComponents)):   
         if circuitComponents[i].ctype == 'C':
             node1 = int(circuitComponents[i].node1[1]) -1
             node2 = int(circuitComponents[i].node2[1]) -1
             if node1 >=0:
-                tmp_1[node1] += ((circuitComponents[i].value/h)*V_Init)
+                tmp_1[node1] += ((circuitComponents[i].value/h)*(X[node1]-X[node2]))
             if node2 >=0:
-                tmp_1[node2] -= ((circuitComponents[i].value/h)*V_Init)
-        
+                tmp_1[node2] -= ((circuitComponents[i].value/h)*(X[node1]-X[node2]))
     It = np.block([[tmp_1],[tmp_2]])
     return It
 
-
-
-print(A)
-print(Z)
-print(calculate_It_Z(0,0))
+print(">>A")
 A_inv = np.linalg.inv(A)
+X = np.zeros((n+m,1))
+print(n,m)
 for i in range(iterations):
-    X = np.matmul(A_inv,Z+calculate_It_Z(0,0))
     print(X)
+    X = np.matmul(A_inv,Z+calculate_It_Z(X))
+print(X)
