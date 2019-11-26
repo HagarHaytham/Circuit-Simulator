@@ -7,4 +7,4 @@ class component:
         self.initial_value = initial_value
 
     def __str__(self):
-        return 
+        return self.ctype+ " "+ self.node1 +" "+ self.node2+" "+ self.value+" "+ self. initial_value
