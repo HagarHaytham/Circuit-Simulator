@@ -66,10 +66,35 @@ B = np.zeros((n,m))
 vsrc = 0
 for i in range(len(circuitComponents)):
     if circuitComponents[i].ctype == 'Vsrc':
-        nodeNum1 = int(circuitComponents[i].node1[1])
-        nodeNum2 = int(circuitComponents[i].node2[1])
+        nodeNum1 = int(circuitComponents[i].node1[1]) -1
+        nodeNum2 = int(circuitComponents[i].node2[1]) -1
         B[nodeNum1][vsrc] = 1
         B[nodeNum2][vsrc] = -1
+        vsrc+=1
 # compute C and D
 C = B.transpose()
-D = np.zeros((m,m))
+D = np.zeros((m,m)) # ???
+# construct A
+# A = np.block([G,B])
+
+
+I = np.zeros((n,1))
+E = np.zeros((m,1))
+print(">>>>")
+print(I)
+print(E)
+vsrc = 0
+for i in range(len(circuitComponents)):
+    if circuitComponents[i].ctype == 'Vsrc':
+        E[vsrc] = circuitComponents[i].value
+    elif circuitComponents[i].ctype == ' Isrc':
+        # get the node position
+        node1 = int(circuitComponents[i].node1[1]) -1
+        node2 = int(circuitComponents[i].node2[1]) -1
+        if node1 >=0:
+            I[node1] += circuitComponents[i].value
+        if node2 >=0:
+            I[node2] += circuitComponents[i].value
+print(I)
+print(E)
+#construct Z (I,E)
