@@ -13,3 +13,15 @@ class node:
             if self.connected[i].ctype == 'R':
                 arr.append(self.connected[i])
         return arr
+    def getCapacitors(self):
+        arr = []
+        for i in range(len(self.connected)):
+            if self.connected[i].ctype == 'C':
+                arr.append(self.connected[i])
+        return arr
+    def getInductors(self):
+        arr = []
+        for i in range(len(self.connected)):
+            if self.connected[i].ctype == 'I':
+                arr.append(self.connected[i])
+        return arr
