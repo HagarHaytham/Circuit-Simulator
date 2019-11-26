@@ -1,6 +1,7 @@
 class node:
     def __init__(self,name):
         self.name=name
+        self.number = int(name[1])
         self.connected = [] # components connected
 
     def addComponent(self,component):
