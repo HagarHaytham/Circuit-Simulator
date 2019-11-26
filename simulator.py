@@ -2,8 +2,8 @@ from component import component
 from node import node
 
 import numpy as np
-
-with open("input/1.txt") as file: 
+infile="4.txt"
+with open("input/"+infile) as file: 
    data = file.read()
 data = data.split('\n')
 
@@ -47,7 +47,7 @@ for i in range (len(nodes)):
     r = nodes[i].getResistors()
     for j in range(len(r)):
         G[pos][pos]+= 1/r[j].value
-print(G)
+
 # second off-diagonal elements of G
 for i in range (len(nodes)):
     if nodes[i].name =='V0':
@@ -61,6 +61,7 @@ for i in range (len(nodes)):
         elif int(r[j].node2[1]) > nodes[i].number:
             G[nodes[i].number-1][int(r[j].node2[1])-1] += -1/r[j].value
             G[int(r[j].node2[1])-1][nodes[i].number-1] += -1/r[j].value
+
 # compute B
 B = np.zeros((n,m))
 vsrc = 0
@@ -68,26 +69,27 @@ for i in range(len(circuitComponents)):
     if circuitComponents[i].ctype == 'Vsrc':
         nodeNum1 = int(circuitComponents[i].node1[1]) -1
         nodeNum2 = int(circuitComponents[i].node2[1]) -1
-        B[nodeNum1][vsrc] = 1
-        B[nodeNum2][vsrc] = -1
+        if nodeNum1 >=0:
+            B[nodeNum1][vsrc] = 1
+        if nodeNum2 >=0:
+            B[nodeNum2][vsrc] = -1
         vsrc+=1
 # compute C and D
 C = B.transpose()
 D = np.zeros((m,m)) # ???
 # construct A
-# A = np.block([G,B])
-
+A1 = np.block([[G],[C]])
+A2 = np.block([[B],[D]])
+A = np.block([A1,A2])
+print(A)
 
 I = np.zeros((n,1))
 E = np.zeros((m,1))
-print(">>>>")
-print(I)
-print(E)
 vsrc = 0
 for i in range(len(circuitComponents)):
     if circuitComponents[i].ctype == 'Vsrc':
         E[vsrc] = circuitComponents[i].value
-    elif circuitComponents[i].ctype == ' Isrc':
+    elif circuitComponents[i].ctype == 'Isrc':
         # get the node position
         node1 = int(circuitComponents[i].node1[1]) -1
         node2 = int(circuitComponents[i].node2[1]) -1
@@ -95,6 +97,26 @@ for i in range(len(circuitComponents)):
             I[node1] += circuitComponents[i].value
         if node2 >=0:
             I[node2] += circuitComponents[i].value
-print(I)
-print(E)
-#construct Z (I,E)
+#construct Z 
+Z = np.block([[I],[E]])
+print(Z)
+
+A_inv = np.linalg.inv(A)
+print(A_inv)
+X = np.matmul(A_inv,Z)
+print(X)
+
+nodesNum =[]
+for x in nodesNames:
+    nodesNum.append(int(x[1]))
+
+nodesNum.sort()
+with open ('myoutput/'+infile,'w') as outfile:
+    for i in range(1,len(nodesNum)):
+        outfile.write('V'+str(nodesNum[i])+'\n')
+        outfile.write(str(h)+" "+str(X[i-1][0])+'\n\n')
+    for i in range (n,n+m):
+        outfile.write('I_Vsrc'+str(i-n)+'\n')
+        outfile.write(str(h)+" "+str(X[i][0])+'\n\n')
+
+
