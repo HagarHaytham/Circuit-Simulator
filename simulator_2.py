@@ -2,7 +2,7 @@ from component import component
 from node import node
 import numpy as np
 
-infile ="testcases/6.txt"
+infile ="testcases/8.txt"
 with open(infile)as file:
     data = file.read()
 data = data.split('\n')
@@ -38,6 +38,7 @@ for i in range (len(nodes)):
         elif circuitComponents[j].node2 == nodes[i].name:
             nodes[i].addComponent(circuitComponents[j])
 G = np.zeros((n,n))
+C = np.zeros((n,n))
 
 #Computing Diagonal Elements.
 for i in range (len(nodes)):
@@ -50,6 +51,7 @@ for i in range (len(nodes)):
     c = nodes[i].getCapacitors()
     for j in range(len(c)):
         G[pos][pos]+= c[j].value/h
+        C[pos][pos]+=c[j].value/h
 
 #Computing Off Diagonal Elements.
 for i in range (len(nodes)):
@@ -71,11 +73,14 @@ for i in range (len(nodes)):
         if int(c[j].node1[1]) > nodes[i].number:
             G[nodes[i].number-1][int(c[j].node1[1])-1] += -c[j].value/h
             G[int(c[j].node1[1])-1][nodes[i].number-1] += -c[j].value/h
+            C[nodes[i].number-1][int(c[j].node1[1])-1] += -c[j].value/h
+            C[int(c[j].node1[1])-1][nodes[i].number-1] += -c[j].value/h
         elif int(c[j].node2[1]) > nodes[i].number:
             G[nodes[i].number-1][int(c[j].node2[1])-1] += -c[j].value/h
             G[int(c[j].node2[1])-1][nodes[i].number-1] += -c[j].value/h
+            C[nodes[i].number-1][int(c[j].node2[1])-1] += -c[j].value/h
+            C[int(c[j].node2[1])-1][nodes[i].number-1] += -c[j].value/h
 
-print(n,m)
 B = np.zeros((n,m))
 vsrc = 0
 for i in range(len(circuitComponents)):
@@ -97,7 +102,8 @@ for i in range(len(circuitComponents)):
             B[nodeNum2][vsrc] = -1
         vsrc+=1
 
-C = B.transpose()
+#Called C matrix BT.
+BT = B.transpose()
 D = np.zeros((m,m))
 j = 0
 for i in range(len(circuitComponents)):
@@ -110,7 +116,7 @@ for i in range(len(circuitComponents)):
         D[j][j] = -1*circuitComponents[i].value/h
         j+=1
   
-A1 = np.block([[G],[C]])
+A1 = np.block([[G],[BT]])
 A2 = np.block([[B],[D]])
 A = np.block([A1,A2])
 #Constructing Z vector, without C,I terms.
@@ -133,6 +139,7 @@ for i in range(len(circuitComponents)):
 Z = np.block([[I],[E]])
 
 
+
 def calculate_It_Z(X):
     tmp_1 = np.zeros((n,1))
     tmp_2 = np.zeros((m,1))
@@ -148,21 +155,15 @@ def calculate_It_Z(X):
             tmp_2[vsrc] = (-1*circuitComponents[i].value/h)*X[count]
             vsrc += 1
             count += 1
-    for i in range(len(circuitComponents)):   
-        if circuitComponents[i].ctype == 'C':
-            node1 = int(circuitComponents[i].node1[1]) -1
-            node2 = int(circuitComponents[i].node2[1]) -1
-            if node1 >=0:
-                tmp_1[node1] += ((circuitComponents[i].value/h)*(X[node1]-X[node2]))
-            if node2 >=0:
-                tmp_1[node2] -= ((circuitComponents[i].value/h)*(X[node1]-X[node2]))
+
+    tmp_1 = C.dot(X[0:n])
+   
     It = np.block([[tmp_1],[tmp_2]])
     return It
 
-print(">>A")
+
 A_inv = np.linalg.inv(A)
 X = np.zeros((n+m,1))
-print(n,m)
 for i in range(iterations):
     print(X)
     X = np.matmul(A_inv,Z+calculate_It_Z(X))
