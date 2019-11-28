@@ -2,7 +2,8 @@ from component import component
 from node import node
 import numpy as np
 
-infile ="testcases/8.txt"
+
+infile = str(input())
 with open(infile)as file:
     data = file.read()
 data = data.split('\n')
@@ -164,7 +165,38 @@ def calculate_It_Z(X):
 
 A_inv = np.linalg.inv(A)
 X = np.zeros((n+m,1))
+result = []
 for i in range(iterations):
-    print(X)
+    #print(X)
     X = np.matmul(A_inv,Z+calculate_It_Z(X))
-print(X)
+    result.append(X)
+print(result)
+
+file = open("output"+infile[0]+".txt","w")
+#Writing Output File.
+for i in range(n):
+    file.write("V"+str(i+1)+"\n")
+    for j in range(len(result)):
+        file.write(str((j+1)*h)+" "+str(result[j][i][0])+"\n")
+    file.write("\n")
+
+volt_sources = 0
+induct = 0
+
+for i in range(len(circuitComponents)):
+    if circuitComponents[i].ctype == 'Vsrc':
+        volt_sources += 1
+    elif circuitComponents[i].ctype == 'I':
+        induct += 1
+
+for i in range(volt_sources):
+    file.write("I_Vsrc"+str(i)+"\n")
+    for j in range(len(result)):
+        file.write(str((j+1)*h)+" "+str(result[j][n+i][0])+"\n")
+    file.write("\n")
+
+for i in range(induct):
+    file.write("I_L"+str(i)+"\n")
+    for j in range(len(result)):
+        file.write(str((j+1)*h)+" "+str(result[j][n+volt_sources+i][0])+"\n")
+    file.write("\n")
