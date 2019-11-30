@@ -138,6 +138,8 @@ for i in range(len(circuitComponents)):
             I[node2] += circuitComponents[i].value
 
 Z = np.block([[I],[E]])
+print(A)
+print(Z)
 
 
 
